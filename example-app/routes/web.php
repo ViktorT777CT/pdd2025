@@ -25,5 +25,5 @@ Route::post('/test/save-answer', [TestController::class, 'saveAnswer'])->name('t
 Route::post('/test/complete', [TestController::class, 'complete'])->name('test.complete');
 Route::get('/result', [TestController::class, 'result'])->name('result');
 
-
+Route::post('/test/update-timer', [TestController::class, 'updateTimer'])->name('test.updateTimer');
 

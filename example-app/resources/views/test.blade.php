@@ -4,7 +4,7 @@
     <div class="container">
         <!-- Таймер -->
         <div class="text-end mb-3">
-            <h3>Осталось времени: <span id="timer"></span></h3>
+            <h3>Осталось времени: <span id="timer">{{ gmdate('i:s', session('time_left', 20 * 60)) }}</span></h3>
         </div>
 
         <h1>Вопрос #{{ $currentQuestion->question_number_id }}</h1>
@@ -64,10 +64,7 @@
                         <button type="submit" class="btn btn-danger">Завершить тест</button>
                     </form>
                 @else
-                    <button class="btn btn-secondary" disabled>Завершить тест</button>
-                    <div class="alert alert-info mt-3">
-                        Ответьте на все вопросы, чтобы завершить тест. Осталось ответить на {{ $totalQuestions - $answeredQuestions }} вопросов.
-                    </div>
+
                 @endif
             @endif
         </div>
@@ -75,49 +72,44 @@
 
     <!-- Скрипт для таймера -->
     <script>
+        // Время в секундах (из сессии или 20 минут по умолчанию)
+        let timeLeft = {{ session('time_left', 20 * 60) }};
         const timerElement = document.getElementById('timer');
         const timeSpentInput = document.getElementById('timeSpent');
-        const startTime = 20 * 60; // 20 минут в секундах
         let timerInterval;
-
-        // Получаем текущее время из localStorage или устанавливаем начальное
-        let timeLeft = localStorage.getItem('timeLeft') ? parseInt(localStorage.getItem('timeLeft')) : startTime;
-
-        // Немедленно отобразить оставшееся время при загрузке страницы
-        function displayTime() {
-            const minutes = Math.floor(timeLeft / 60);
-            const seconds = timeLeft % 60;
-            timerElement.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-        }
 
         // Функция обновления таймера
         function updateTimer() {
-            if (timeLeft > 0) {
-                timeLeft--; // Уменьшаем оставшееся время
-                localStorage.setItem('timeLeft', timeLeft); // Сохраняем оставшееся время в localStorage
-            }
-
-            // Обновляем отображение времени
-            displayTime();
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timerElement.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
             if (timeLeft <= 0) {
                 clearInterval(timerInterval);
-                localStorage.removeItem('timeLeft'); // Очистка времени в localStorage, если тест завершен
                 alert('Время вышло! Тест завершен.');
-                document.getElementById('completeForm').submit(); // Автоматически завершить тест
+                document.getElementById('completeForm').submit(); // Автоматически завершаем тест
+            } else {
+                timeLeft--;
+                // Сохраняем оставшееся время в сессии
+                fetch("{{ route('test.updateTimer') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({ time_left: timeLeft })
+                });
             }
         }
 
-        // Запускаем таймер при загрузке страницы
-        displayTime(); // Отображаем время на экране сразу
-        timerInterval = setInterval(updateTimer, 1000); // Начинаем отсчет времени
+        // Запуск таймера
+        timerInterval = setInterval(updateTimer, 1000);
 
-        // Обработка завершения теста
+        // Сохраняем затраченное время при завершении теста
         document.getElementById('completeForm')?.addEventListener('submit', () => {
             clearInterval(timerInterval); // Останавливаем таймер
-            localStorage.removeItem('timeLeft'); // Очищаем localStorage
-            const timeSpent = startTime - timeLeft; // Считаем затраченное время
-            timeSpentInput.value = timeSpent; // Заполняем скрытое поле перед отправкой
+            const timeSpent = 20 * 60 - timeLeft; // Затраченное время в секундах
+            timeSpentInput.value = timeSpent; // Передаем значение в скрытое поле формы
         });
     </script>
 @endsection

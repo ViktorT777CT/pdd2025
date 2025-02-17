@@ -15,7 +15,8 @@ class TestController extends Controller
         // Получаем список всех категорий и номеров билетов
         $categories = Category::all();
         $ticketNumbers = TicketNumber::all();
-
+        // Очищаем сессию (если нужно)
+        session()->forget(['answers', 'time_left', 'timer_started']);
         // Отображаем страницу выбора
         return view('select', compact('categories', 'ticketNumbers'));
     }
@@ -40,45 +41,59 @@ class TestController extends Controller
 
     public function show(Request $request, $questionNumberId)
     {
+        // Получаем выбранные параметры из сессии
         $selectedCategoryId = session('selected_category_id');
         $selectedTicketNumberId = session('selected_ticket_number_id');
 
+        // Если параметры не переданы, возвращаем ошибку
         if (!$selectedCategoryId || !$selectedTicketNumberId) {
             abort(400, 'Категория или номер билета не выбраны');
         }
 
-        // Проверяем, установлена ли начальная метка времени
-        if (!session()->has('test_start_time')) {
-            session(['test_start_time' => now()]);
-        }
-
-        // Проверяем время, прошедшее с начала теста
-        $startTime = session('test_start_time');
-        $elapsedTime = now()->diffInSeconds($startTime); // Прошедшее время в секундах
-
-        // Время, которое осталось (20 минут - прошедшее время)
-        $remainingTime = max(0, 20 * 60 - $elapsedTime);
-
+        // Получаем все вопросы для текущего билета и категории
         $tickets = Ticket::with('answers')
             ->where('category_id', $selectedCategoryId)
             ->where('ticket_number_id', $selectedTicketNumberId)
             ->get();
 
+        // Находим текущий вопрос по question_number_id
         $currentQuestion = $tickets->firstWhere('question_number_id', $questionNumberId);
+
+        // Если вопрос не найден, возвращаем ошибку
         if (!$currentQuestion) {
             abort(404, 'Вопрос не найден');
         }
 
-        $currentIndex = $tickets->search(fn($item) => $item->question_number_id === $currentQuestion->question_number_id);
+        // Инициализируем таймер в сессии (если он еще не инициализирован)
+        if (!session()->has('timer_started')) {
+            session(['timer_started' => true]);
+            session(['time_left' => 20 * 60]); // 20 минут в секундах
+        }
+
+        // Определяем индексы предыдущего и следующего вопросов
+        $currentIndex = $tickets->search(function ($item) use ($currentQuestion) {
+            return $item->question_number_id === $currentQuestion->question_number_id;
+        });
+
         $previousQuestion = $tickets[$currentIndex - 1] ?? null;
         $nextQuestion = $tickets[$currentIndex + 1] ?? null;
+
+        // Получаем общее количество вопросов
         $totalQuestions = $tickets->count();
+
+        // Получаем количество ответов, сохраненных в сессии
         $userAnswers = session('answers', []);
         $answeredQuestions = count($userAnswers);
 
+        // Передаем данные в представление
         return view('test', compact(
-            'currentQuestion', 'previousQuestion', 'nextQuestion',
-            'totalQuestions', 'answeredQuestions', 'tickets', 'userAnswers', 'remainingTime'
+            'currentQuestion',
+            'previousQuestion',
+            'nextQuestion',
+            'totalQuestions',
+            'answeredQuestions',
+            'tickets', // Передаем все вопросы для пагинации
+            'userAnswers' // Передаем ответы для подсветки кнопок
         ));
     }
 
@@ -158,7 +173,18 @@ class TestController extends Controller
             'errors' => $errors,
         ]);
     }*/
+    public function updateTimer(Request $request)
+    {
+        // Валидация данных
+        $request->validate([
+            'time_left' => 'required|integer|min:0',
+        ]);
 
+        // Сохраняем оставшееся время в сессии
+        session(['time_left' => $request->time_left]);
+
+        return response()->json(['success' => true]);
+    }
 
     public function complete(Request $request)
     {
@@ -194,8 +220,8 @@ class TestController extends Controller
             ],
         ]);
 
-        // Очищаем ответы из сессии (если нужно)
-        /*session()->forget('answers');*/
+        // Очищаем сессию (если нужно)
+        session()->forget(['answers', 'time_left', 'timer_started']);
 
         // Перенаправляем на страницу с результатами
         return redirect()->route('result');
