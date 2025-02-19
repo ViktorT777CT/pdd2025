@@ -75,9 +75,7 @@
                     <div class="ticket__content">
                         @if($currentQuestion->image)
                             <div class="ticket__img">
-                                <img src="
-                            {{$currentQuestion->image}}
-                            " alt="">
+                                <img src="{{ asset($currentQuestion->image) }}" alt="">
                             </div>
                         @else
 
