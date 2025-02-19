@@ -2,14 +2,16 @@
 
 use App\Http\Controllers\TestController;
 
+Route::get('/', [TestController::class, 'index'])->name('index');
+
 // Обработка выбора категории и номера билета
 Route::post('/select', [TestController::class, 'storeSelection'])->name('test.storeSelection');
 // Страница выбора категории и номера билета
-Route::get('/select', [TestController::class, 'select'])->name('test.select');
+Route::get('/select', [TestController::class, 'select'])->name('test.test-a');
 
 // Перенаправление, если зашли на `/test` без параметра
 Route::get('/test', function () {
-    return redirect()->route('test.select');
+    return redirect()->route('test.test-a');
 });
 
 

@@ -10,6 +10,12 @@ use Illuminate\Http\Request;
 
 class TestController extends Controller
 {
+
+    public function index(Request $request)
+    {
+
+        return view('desktop.index');
+    }
     public function select()
     {
         // Получаем список всех категорий и номеров билетов
@@ -18,7 +24,7 @@ class TestController extends Controller
         // Очищаем сессию (если нужно)
         session()->forget(['answers', 'time_left', 'timer_started']);
         // Отображаем страницу выбора
-        return view('select', compact('categories', 'ticketNumbers'));
+        return view('desktop.test-a', compact('categories', 'ticketNumbers'));
     }
 
     public function storeSelection(Request $request)
@@ -86,14 +92,16 @@ class TestController extends Controller
         $answeredQuestions = count($userAnswers);
 
         // Передаем данные в представление
-        return view('test', compact(
+        return view('desktop.test-page', compact(
             'currentQuestion',
             'previousQuestion',
             'nextQuestion',
             'totalQuestions',
             'answeredQuestions',
+            'selectedTicketNumberId', // Добавляем текущий билет
             'tickets', // Передаем все вопросы для пагинации
             'userAnswers' // Передаем ответы для подсветки кнопок
+
         ));
     }
 
@@ -237,6 +245,6 @@ class TestController extends Controller
         session()->forget('answers');
         /*dd($results);*/
         // Отображаем страницу с результатами
-        return view('result', compact('results'));
+        return view('desktop.end-test', compact('results'));
     }
 }

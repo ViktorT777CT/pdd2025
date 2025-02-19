@@ -15,7 +15,7 @@
             <div class="container-fluid">
                 <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
                     <div class="navbar-nav">
-                        <a class="nav-link" href="{{ route('test.select') }}">Главная</a>
+                        <a class="nav-link" href="">Главная</a>
 
                     </div>
                 </div>
