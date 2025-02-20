@@ -22,7 +22,7 @@
                 <label for="burger-checkbox" class="burger"></label>
                 <ul class="menu-list">
 
-                    <li class="nav-item">
+                   {{-- <li class="nav-item">
                         <a href="">
                             ПДД 2024
                         </a>
@@ -55,19 +55,19 @@
                                 <a href="#">Категолрия DC</a>
                             </li>
                         </ul>
-                    </li>
+                    </li>--}}
                     <li class="nav-item">
-                        <a href="">
+                        <a href="{{ route('test.test-a') }}">
                             Сдать экзамен
                         </a>
-                        <ul class="dropdown-menu">
+                        {{--<ul class="dropdown-menu">
                             <li>
                                 <a href="#">Категолрия ABM</a>
                             </li>
                             <li>
                                 <a href="#">Категолрия DC</a>
                             </li>
-                        </ul>
+                        </ul>--}}
                     </li>
                 </ul>
             </div>
@@ -91,7 +91,7 @@
                 <p>Copyright © 2024 | <a href="mailto:p_viktor91@mail.ru"><b>p_viktor91@mail.ru</b></a></p>
             </div>
         </div>
-        <div class="footer__nav">
+        {{--<div class="footer__nav">
             <a href="#">
                 <h4>ПДД 2024</h4>
             </a>
@@ -124,19 +124,19 @@
                     <a href="#">Категолрия DC</a>
                 </li>
             </ul>
-        </div>
+        </div>--}}
         <div class="footer__nav">
-            <a href="#">
+            <a href="{{ route('test.test-a') }}">
                 <h4>Сдать Экзамен</h4>
             </a>
-            <ul>
+            {{--<ul>
                 <li>
                     <a href="#">Категолрия ABM</a>
                 </li>
                 <li>
                     <a href="#">Категолрия DC</a>
                 </li>
-            </ul>
+            </ul>--}}
         </div>
         <div class=" footer__nav footer__nav-pdd">
             <p>Данные ПДД и билеты ПДД <br> взяты с официального сайта <br> <a href="https://xn--80aebkobnwfcnsfk1e0h.xn--p1ai/"><b>ГОСАВТОИНСПЕКЦИИ</b></a>
